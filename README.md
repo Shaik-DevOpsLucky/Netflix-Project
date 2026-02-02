@@ -1,4 +1,4 @@
-# Netflix Pipeline Project
+# Netflix app-v-2.8 Project
 
 This project is a sample Netflix-style web application.  
 This README explains **how to host the project on an Apache server** (Ubuntu/Linux EC2).
@@ -19,7 +19,7 @@ This README explains **how to host the project on an Apache server** (Ubuntu/Lin
 
 ```
 
-Netflix-Pipeline-Project/
+Netflix-app-v-2.8-Project/
 ├── pom.xml
 ├── Script
 └── src/
@@ -53,7 +53,7 @@ Netflix-Pipeline-Project/
 ```bash
 cd /var/www/html
 git clone https://github.com/Shaik-DevOpsLucky/Netflix-Project.git
-cd Netflix-Pipeline-Project/src/main/webapp
+cd Netflix-app-v-2.8-Project/src/main/webapp
 ````
 
 ### 2️⃣ Configure Apache
@@ -69,9 +69,9 @@ Update it as:
 ```apache
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/html/Netflix-Pipeline-Project/src/main/webapp
+    DocumentRoot /var/www/html/Netflix-app-v-2.8-Project/src/main/webapp
 
-    <Directory /var/www/html/Netflix-Pipeline-Project/src/main/webapp>
+    <Directory /var/www/html/Netflix-app-v-2.8-Project/src/main/webapp>
         Options FollowSymLinks
         AllowOverride None
         Require all granted
@@ -84,7 +84,7 @@ Update it as:
 ```
 
 > **Important:** `DocumentRoot` must point to the **directory**, not `index.jsp`.
-## /var/www/html/Netflix-Pipeline-Project/src/main/webapp/
+## /var/www/html/Netflix-app-v-2.8-Project/src/main/webapp/
 ---
 
 ### 3️⃣ Restart Apache
@@ -98,8 +98,8 @@ sudo systemctl restart apache2
 ### 4️⃣ Verify Permissions (optional):
 
 ```bash
-sudo chown -R www-data:www-data /var/www/html/Netflix-Pipeline-Project
-sudo chmod -R 755 /var/www/html/Netflix-Pipeline-Project
+sudo chown -R www-data:www-data /var/www/html/Netflix-app-v-2.8-Project
+sudo chmod -R 755 /var/www/html/Netflix-app-v-2.8-Project
 ```
 
 ---
@@ -119,6 +119,106 @@ http://<EC2-PUBLIC-IP>/
 * Always ensure `index.jsp` exists for the default page.
 * Keep the `webapp` directory structure intact for proper file references (CSS/JS).
 * Optional: disable directory listing globally in Apache:
+
+---
+
+## 🐳 Docker Build & Push to AWS ECR (Steps Only)
+
+This section explains how to **build the Docker image** and **push it to AWS Elastic Container Registry (ECR)** using the existing `Dockerfile`.
+
+---
+
+### 1️⃣ Build Docker Image
+
+From the project root directory:
+
+```bash
+docker build -t netflix-app-v-2.8 .
+```
+
+Verify the image:
+
+```bash
+docker images
+```
+
+---
+
+### 2️⃣ Test Docker Image Locally (Optional)
+
+```bash
+docker run -d --name netflix-app -p 8080:8080 netflix-app-v-2.8
+```
+
+Access:
+
+```
+http://<IP>:8080
+```
+
+---
+
+## ☁️ Push Docker Image to AWS ECR
+
+### 3️⃣ Create ECR Repository
+
+```bash
+aws ecr create-repository \
+  --repository-name netflix-app-v-2.8 \
+  --region us-east-1
+```
+
+Copy the repository URI returned by AWS.
+
+---
+
+### 4️⃣ Authenticate Docker to ECR
+
+```bash
+aws ecr get-login-password --region us-east-1 \
+| docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
+```
+
+---
+
+### 5️⃣ Tag Docker Image
+
+```bash
+docker tag netflix-app-v-2.8:latest \
+<AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/netflix-app-v-2.8:latest
+```
+
+---
+
+### 6️⃣ Push Docker Image to ECR
+
+```bash
+docker push \
+<AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/netflix-app-v-2.8:latest
+```
+
+---
+
+## ✅ Result
+
+* Docker image successfully built
+* Image pushed to **AWS ECR**
+* Ready for deployment on **EC2 / ECS / EKS**
+
+---
+
+## 🔍 Quick Notes
+
+* Ensure AWS CLI is configured:
+
+```bash
+aws configure
+```
+
+* Docker must be running
+* Correct IAM permissions are required for ECR
+
+---
 
 # Prepared by:
 *Shaik Moulali*
